@@ -16,10 +16,10 @@ public class Unit : MonoBehaviour
     public Vector3 velocity;
     public bool isStopping;
     public bool isDead = false;
+    public  UnitSpawner unitSpawner;
 
-    public void Initialize(Vector3 spawnPosition, string unitType, string unitAllience, int unitHealth, int unitAttackDamage, float unitAttackSpeed, float unitWalkingSpeed)
+    public void Initialize(UnitSpawner controller, Vector3 spawnPosition, string unitType, string unitAllience, int unitHealth, int unitAttackDamage, float unitAttackSpeed, float unitWalkingSpeed)
     {
-
         type = unitType;
         allience = unitAllience;
         health = unitHealth;
@@ -29,6 +29,8 @@ public class Unit : MonoBehaviour
         transform.position = spawnPosition;
         velocity = new Vector3(walkingSpeed, 0, 0);
         isStopping = false;
+        unitSpawner = controller;
+        
     }
 
     // Update is called once per frame
@@ -48,9 +50,6 @@ public class Unit : MonoBehaviour
             case "defend":
                 Defend();
                 break;
-            case "attack":
-                Attack();
-                break;
             case "die":
                 Die();
                 break;
@@ -65,6 +64,8 @@ public class Unit : MonoBehaviour
     public void Walk()
     {
         this.transform.position += velocity;
+        isStopping = true;
+
     }
     public void Stop()
     {
@@ -73,6 +74,8 @@ public class Unit : MonoBehaviour
         {
             velocity.x = 0;
             ChangeState("idle");
+            isStopping = false;
+            unitSpawner.isAttacking = true;
         }
         this.transform.position += velocity;
 
@@ -85,18 +88,9 @@ public class Unit : MonoBehaviour
     {
 
     }
-    public void Attack()
+    public void Attack(Unit enemy)
     {
-        if (allience == "player" && UnitSpawner.isMyTurn)
-        {
-            print("player attacks enemy");
-            UnitSpawner.enemyUnitList[0].GetComponent<Unit>().GetDamage(attackDamage);
-        }
-        else if (allience == "enemy" && !UnitSpawner.isMyTurn)
-        {
-            print("Enemy attacks player");
-            UnitSpawner.myUnitList[0].GetComponent<Unit>().GetDamage(attackDamage);
-        }
+        enemy.GetDamage(attackDamage);   
     }
     public void GetDamage(int amount)
     {
@@ -119,15 +113,16 @@ public class Unit : MonoBehaviour
         Debug.LogWarning("dead");
         if (allience == "player")
         {
-            UnitSpawner.myUnitList.Remove(this.gameObject);
+            unitSpawner.myUnitList.Remove(this.gameObject);
             Destroy(this.gameObject);
-            UnitSpawner.isMovingOut = true;
+            unitSpawner.isMovingOut = true;
         }
         if (allience == "enemy")
         {
-            UnitSpawner.enemyUnitList.Remove(this.gameObject);
+            unitSpawner.enemyUnitList.Remove(this.gameObject);
             Destroy(this.gameObject);
-            UnitSpawner.isMovingOut = true;
+            unitSpawner.isMovingOut = true;
         }
+        unitSpawner.StopAttacking();
     }
 }
