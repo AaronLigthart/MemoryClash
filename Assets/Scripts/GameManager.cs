@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public GameObject card;
     public GameObject grid;
     public UnitSpawner unitSpawner;
+    public Camera camera;
 
     public List<GameObject> deck = new List<GameObject>();
     public List<GameObject> grabbedCardsList = new List<GameObject>();
@@ -18,6 +19,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI mageText;
     public TextMeshProUGUI tankText;
     public TextMeshProUGUI archerText;
+
+    public TextMeshProUGUI timerText;
+
     private int soldierCount = 0;
     private int mageCount = 0;
     private int tankCount = 0;
@@ -25,60 +29,111 @@ public class GameManager : MonoBehaviour
     public List<string> playerList = new List<string>();
     public List<string> enemyList = new List<string>();
 
-
-
-
     public int score = 0;
 
+    private int currentTime;
 
 
 
-    /*
-     * DONE Step 1: Create a deck with all the possible cards that can be played
-     * Step 2: Grab a pair and put them in a grabbedCardsList
-     * step 3: Shuffle the deck
-     * step 4: place the deck
-     * step 5: when a pair is matched add it to a pairedCardsList
-     * step 6: when the timer has ran out.
-     */
     void Start()
     {
-        playerList.Add("soldier");
-        playerList.Add("tank");
-        playerList.Add("archer");
-        playerList.Add("mage");
-
-        enemyList.Add("archer");
-        enemyList.Add("archer");
-        enemyList.Add("archer");
-        enemyList.Add("archer");
-        enemyList.Add("archer");
-
-
-
         CreateDeck(20);
-        unitSpawner.Spawn(playerList, enemyList);
+    }
+    
+    /************************
+     * Handle Deck creation *
+     ************************/
+    void CreateDeck(int units)
+    {
+        for (int i = 0; i < units; i++)
+        {
+            CreateCard(card, i);
+            CreateCard(card, i);
+        }
+        GrabCards(24);
+    }
+    GameObject CreateCard(GameObject card, int type)
+    {
+        GameObject card1 = Instantiate(card);
+        card1.GetComponent<Card>().SetType(type);
+        deck.Add(card1);
+        return card1;
+    }
+    void GrabCards(int grabAmount)
+    {
+        for (int i = 0; i < grabAmount; i += 2)
+        {
+            GrabCard(Random.Range(0, deck.Count));
+        }
+        placeCards(Shuffle(grabbedCardsList));
+    }
+    void GrabCard(int index)
+    {
+        if (index % 2 == 0)
+        {
+            grabbedCardsList.Add(deck[index]);
+            grabbedCardsList.Add(deck[index + 1]);
+            deck.Remove(deck[index + 1]);
+            deck.Remove(deck[index]);
+        }
+        else
+        {
+            GrabCard(Random.Range(0, deck.Count));
+        }
+    }
+    List<GameObject> Shuffle(List<GameObject> deck)
+    {
+        for (int i = 0; i < deck.Count; i++)
+        {
+            int rnd = Random.Range(0, deck.Count);
+            GameObject tempGO = deck[rnd];
+            deck[rnd] = deck[i];
+            deck[i] = tempGO;
+        }
+        return deck;
+    }
+    void placeCards(List<GameObject> deck)
+    {
+        for (int i = 0; i < deck.Count; i++)
+        {
+            deck[i].transform.SetParent(grid.transform);
+        }
+        ResetTimer();
+        StartCoroutine(StartTimer());
+    }
+    /*****************************
+    ** Handle Memory game Phase **
+    ******************************/
+    public IEnumerator StartTimer()
+    {
+        while (currentTime != 0)
+        {
+            yield return new WaitForSeconds(1);
+            currentTime--;
+            timerText.text = "Time untill attack commences: " + this.currentTime;
+        }
+        TransitionCamera(camera.transform.position,new Vector3(0,14.5f, -10),2.5f);
+        StopCoroutine(StartTimer());
     }
 
+    private void ResetTimer(int setTime = 30)
+    {
+        currentTime = setTime;
+    }
     public void CheckCards(GameObject card)
     {
-        print("checking card");
         selectedCards.Add(card);
 
         if (selectedCards.Count == 2)
         {
-            Debug.LogWarning("we got 2!");
            if(selectedCards[0].GetComponent<Card>().unitType == selectedCards[1].GetComponent<Card>().unitType)
            {
-                Debug.LogWarning("GOOD JOB!");
-
                 score += 1;
                 AddUnit(selectedCards[0].GetComponent<Card>().unitType);
                 selectedCards.Clear();
 
             }
             else {
-                Debug.LogWarning("resetting");
 
                 for (int i = 0; i < selectedCards.Count;i++)
                 {
@@ -86,13 +141,10 @@ public class GameManager : MonoBehaviour
 
                 }
                 selectedCards.Clear();
-
-                print(selectedCards.Count);
             }
         }
         
     }
-
     void AddUnit(int unitType)
     {
         if (unitType >= 0 && unitType < 5)
@@ -113,68 +165,39 @@ public class GameManager : MonoBehaviour
             tankText.text = "x " + tankCount;
         } else Debug.LogError("Unit out of range");
     }
-    void CreateDeck(int units)
+
+
+    /****************************
+    *** Handle War game Phase ***
+    *****************************/
+
+    public void CreatePlayerArmy()
     {
-        for(int i = 0; i < units; i++)
-        {
-            CreateCard(card, i);
-            CreateCard(card, i);
-        }
-        GrabCards(24);
+        playerList.Add("soldier");
+        playerList.Add("tank");
+        playerList.Add("archer");
+        playerList.Add("mage");
     }
-    void GrabCards(int grabAmount)
+    public void CreateEnemyArmy()
     {
-        for(int i = 0; i < grabAmount; i += 2)
-        {
-            GrabCard(Random.Range(0, deck.Count));
-        }
-        placeCards(Shuffle(grabbedCardsList));
+        enemyList.Add("soldier");
+        enemyList.Add("tank");
+        enemyList.Add("archer");
+        enemyList.Add("mage");
     }
-    void GrabCard(int index)
+    public void StartWar()
     {
-        if(index%2 == 0){
-            grabbedCardsList.Add(deck[index]);
-            grabbedCardsList.Add(deck[index+1]);
-            deck.Remove(deck[index + 1]);
-            deck.Remove(deck[index]);
-        }
-        else
-        {
-            GrabCard(Random.Range(0, deck.Count));
-        }
+        unitSpawner.Spawn(playerList, enemyList);
     }
 
-    List<GameObject> Shuffle(List<GameObject> deck)
+    public void TransitionCamera(Vector3 startPos, Vector3 endPos, float duration)
     {
-        for (int i = 0; i < deck.Count; i++)
+        float t = 0.0f;
+        while (t < 1.0f)
         {
-            int rnd = Random.Range(0, deck.Count);
-            GameObject tempGO = deck[rnd];
-            deck[rnd] = deck[i];
-            deck[i] = tempGO;
+            t += Time.deltaTime * (Time.timeScale / duration);
+            camera.transform.position = Vector3.Lerp(startPos, endPos, t);
         }
-        return deck;
-    }
-
-    GameObject CreateCard(GameObject card, int type)
-    {
-        GameObject card1 = Instantiate(card);
-        card1.GetComponent<Card>().SetType(type);
-        deck.Add(card1);
-        return card1;
-    }
-
-    void placeCards(List<GameObject> deck)
-    {
-        for (int i = 0; i < deck.Count; i++)
-        {
-            deck[i].transform.SetParent(grid.transform);
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        StartWar();
     }
 }
