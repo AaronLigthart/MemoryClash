@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     public GameObject card;
     public GameObject grid;
     public UnitSpawner unitSpawner;
-    public Camera camera;
+    public GameObject camera;
 
     public List<GameObject> deck = new List<GameObject>();
     public List<GameObject> grabbedCardsList = new List<GameObject>();
@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour
             currentTime--;
             timerText.text = "Time untill attack commences: " + this.currentTime;
         }
-        TransitionCamera(camera.transform.position,new Vector3(0,14.5f, -10),2.5f);
+        StartCoroutine(RemoveCards());
         StopCoroutine(StartTimer());
     }
 
@@ -131,7 +131,6 @@ public class GameManager : MonoBehaviour
                 score += 1;
                 AddUnit(selectedCards[0].GetComponent<Card>().unitType);
                 selectedCards.Clear();
-
             }
             else {
 
@@ -187,17 +186,40 @@ public class GameManager : MonoBehaviour
     }
     public void StartWar()
     {
+        CreatePlayerArmy();
+        CreateEnemyArmy();
         unitSpawner.Spawn(playerList, enemyList);
     }
 
-    public void TransitionCamera(Vector3 startPos, Vector3 endPos, float duration)
+    public IEnumerator RemoveCards()
     {
-        float t = 0.0f;
-        while (t < 1.0f)
+        float removetime = 0.3f;
+        for (int i = 0; i < deck.Count; i++)
         {
-            t += Time.deltaTime * (Time.timeScale / duration);
-            camera.transform.position = Vector3.Lerp(startPos, endPos, t);
+            Destroy(deck[i]);
+        }
+
+        for (int i = 0; i < grabbedCardsList.Count; i++ )
+        {
+            
+            Destroy(grabbedCardsList[i]);
+            yield return new WaitForSeconds(removetime *=0.9f);
+        }
+        StartCoroutine(TransitionCamera(new Vector3(0, 14.5f, -10), 1.2f));
+
+    }
+    public IEnumerator TransitionCamera(Vector3 endPos, float duration)
+    {
+        float elapsedTime = 0.0f;
+        Vector3 startingPos = camera.transform.position;
+        while (elapsedTime < duration)
+        {
+            print(camera.transform.position);
+            camera.transform.position = Vector3.Lerp(startingPos, endPos, Mathf.SmoothStep(0.0f, 1.0f, (elapsedTime/duration)));
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
         }
         StartWar();
+        yield return 0;
     }
 }
