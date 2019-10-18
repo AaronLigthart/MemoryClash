@@ -14,24 +14,25 @@ public class UnitSpawner : MonoBehaviour
     public bool isAttacking = false;
     public Coroutine lastEnumerator;
 
-    public void Spawn(int[] myUnits, int[] enemyUnits)
+    public void Spawn(List<string> myUnits, List<string> enemyUnits)
     {
-        for(int i = 0; i<= myUnits.Length; i++)
+        for(int i = 0; i < myUnits.Count; i++)
         {
             var unit = Instantiate(unitPrefab);
             myUnitList.Add(unit);
-            setUnit(myUnits)
-            unit.GetComponent<Unit>().Initialize(this, spawnpointLeft.transform.position - new Vector3(i * 1.2f,0,0),"sword","player", 5, 1, 1, 0.06f);
+            unit.GetComponent<Unit>().Initialize(this, spawnpointLeft.transform.position - new Vector3(i * 1.2f,0,0), myUnits[i], "player", 0.06f);
             
         }
-        for (int i = 0; i <= enemyUnits.Length; i++)
+        for (int i = 0; i < enemyUnits.Count; i++)
         {
             var unit = Instantiate(unitPrefab);
             enemyUnitList.Add(unit);
-            unit.GetComponent<Unit>().Initialize(this,spawnpointRight.transform.position + new Vector3(i * 1.2f, 0, 0), "sword", "enemy", 5, 1, 1, -0.06f);
+            unit.GetComponent<Unit>().Initialize(this,spawnpointRight.transform.position + new Vector3(i * 1.2f, 0, 0), enemyUnits[i], "enemy",-0.06f);
         }
         MoveOut();
     }
+
+    
 
     public void StopAttacking()
     {
@@ -74,7 +75,10 @@ public class UnitSpawner : MonoBehaviour
     {
         if (isMovingOut)
         {
-            CheckDistance(myUnitList[0], enemyUnitList[0], 2);
+            if (myUnitList.Count > 0 && enemyUnitList.Count > 0)
+            {
+                CheckDistance(myUnitList[0], enemyUnitList[0], 2);
+            }
         }
         else if (isAttacking && !myUnitList[0].GetComponent<Unit>().isStopping)
         {

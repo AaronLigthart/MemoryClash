@@ -93,10 +93,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8b3620b01e87a245bfd3afeb6ad9eb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState: 
+  type: 
+  allience: 
   health: 5
   attackDamage: 1
   attackSpeed: 1
-  walkingDirection: -1
   walkingSpeed: 0.05
   position: {x: 0, y: 0, z: 0}
   velocity: {x: 0, y: 0, z: 0}
+  isStopping: 0
+  isDead: 0
+  unitSpawner: {fileID: 0}
+  image:
+  - {fileID: 21300000, guid: 627a2f18a7d58d949855835faf6e198f, type: 3}
+  - {fileID: 21300000, guid: 4210db6c864fe1e4ab0b85be8b3ae9ee, type: 3}
+  - {fileID: 21300000, guid: 22616d0348686f2428644895d47b2466, type: 3}
+  - {fileID: 21300000, guid: d770b048bbf38b743b2c033652116357, type: 3}

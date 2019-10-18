@@ -22,7 +22,10 @@ public class GameManager : MonoBehaviour
     private int mageCount = 0;
     private int tankCount = 0;
     private int archerCount = 0;
-    public int[] array = new int[] { 1, 2, 3 };
+    public List<string> playerList = new List<string>();
+    public List<string> enemyList = new List<string>();
+
+
 
 
     public int score = 0;
@@ -40,9 +43,21 @@ public class GameManager : MonoBehaviour
      */
     void Start()
     {
-   
+        playerList.Add("soldier");
+        playerList.Add("tank");
+        playerList.Add("archer");
+        playerList.Add("mage");
+
+        enemyList.Add("archer");
+        enemyList.Add("archer");
+        enemyList.Add("archer");
+        enemyList.Add("archer");
+        enemyList.Add("archer");
+
+
+
         CreateDeck(20);
-        unitSpawner.Spawn(array, array);
+        unitSpawner.Spawn(playerList, enemyList);
     }
 
     public void CheckCards(GameObject card)
@@ -107,7 +122,6 @@ public class GameManager : MonoBehaviour
         }
         GrabCards(24);
     }
-
     void GrabCards(int grabAmount)
     {
         for(int i = 0; i < grabAmount; i += 2)
@@ -116,7 +130,6 @@ public class GameManager : MonoBehaviour
         }
         placeCards(Shuffle(grabbedCardsList));
     }
-
     void GrabCard(int index)
     {
         if(index%2 == 0){

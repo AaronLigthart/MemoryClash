@@ -10,29 +10,63 @@ public class Unit : MonoBehaviour
     public int health;
     public int attackDamage;
     public float attackSpeed;
-    public int walkingDirection;
     public float walkingSpeed;
     public Vector3 position;
     public Vector3 velocity;
     public bool isStopping;
     public bool isDead = false;
-    public  UnitSpawner unitSpawner;
+    public UnitSpawner unitSpawner;
+    public Sprite[] image;
 
-    public void Initialize(UnitSpawner controller, Vector3 spawnPosition, string unitType, string unitAllience, int unitHealth, int unitAttackDamage, float unitAttackSpeed, float unitWalkingSpeed)
+    public void Initialize(UnitSpawner controller, Vector3 spawnPosition, string unitType, string unitAllience, float walkSpeed)
     {
         type = unitType;
         allience = unitAllience;
-        health = unitHealth;
-        attackDamage = unitAttackDamage;
-        attackSpeed = unitAttackSpeed;
-        walkingSpeed = unitWalkingSpeed;
         transform.position = spawnPosition;
+        walkingSpeed = walkSpeed;
         velocity = new Vector3(walkingSpeed, 0, 0);
         isStopping = false;
         unitSpawner = controller;
         
-    }
+        print(type);
+        SetUnit(type);
+        
 
+
+    }
+    public void SetUnit(string unitType)
+    {
+        switch (unitType)
+        {
+            case "soldier":
+                health = 5;
+                attackDamage = 1;
+                gameObject.GetComponent<SpriteRenderer>().sprite = image[0];
+                break;
+            case "tank":
+                health = 8;
+                attackDamage = 2;
+                gameObject.GetComponent<SpriteRenderer>().sprite = image[1];
+
+                break;
+            case "mage":
+                health = 2;
+                attackDamage = 5;
+                gameObject.GetComponent<SpriteRenderer>().sprite = image[2];
+
+                break;
+            case "archer":
+                health = 3;
+                attackDamage = 3;
+                gameObject.GetComponent<SpriteRenderer>().sprite = image[3];
+
+                break;
+            default:
+                Debug.LogError("No unit named " + unitType);
+                break;
+        }
+
+    }
     // Update is called once per frame
     void Update()
     {
